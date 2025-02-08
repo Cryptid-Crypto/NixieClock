@@ -27,10 +27,10 @@ android {
     }
 
     buildTypes {
-        release {
+        getByName("release") {
             isMinifyEnabled = false
-            isShrinkResources = false
-            signingConfig = null // Remove signing for CI build
+            proguardFiles(getDefaultProguardFile("proguard-android.txt"), "proguard-rules.pro")
+            signingConfig = null // Explicitly set to null for CI build
         }
     }
 
@@ -38,6 +38,12 @@ android {
         disable += "all"
         checkReleaseBuilds = false
         abortOnError = false
+    }
+
+    packagingOptions {
+        resources {
+            excludes += "/META-INF/{AL2.0,LGPL2.1}"
+        }
     }
 }
 
