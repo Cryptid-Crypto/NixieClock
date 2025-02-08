@@ -1,10 +1,5 @@
 name: Build and Release APK
-on:
-  push:
-    branches:
-      - main
-      - master
-  workflow_dispatch:
+on: [push, workflow_dispatch]
 
 permissions: write-all
 
@@ -13,9 +8,19 @@ jobs:
     name: Build APK
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - name: Checkout code
+        uses: actions/checkout@v3
         with:
           fetch-depth: 0
+
+      - name: Debug Git Info
+        run: |
+          echo "Current branch:"
+          git branch --show-current
+          echo "All branches:"
+          git branch -a
+          echo "Git status:"
+          git status
 
       - name: Setup Java
         uses: actions/setup-java@v3
@@ -29,33 +34,34 @@ jobs:
           flutter-version: '3.x'
           channel: 'stable'
 
-      - name: Show current directory and branch
-        run: |
-          pwd
-          git branch --show-current
-          git status
-
       - name: Flutter pub get
         run: flutter pub get
 
       - name: Build APK
         run: flutter build apk --release
 
-      - name: Debug APK Location
+      - name: Debug Build Output
         run: |
-          echo "Looking for APK files..."
+          echo "APK build location:"
           find . -name "*.apk"
-          echo "Contents of build/app/outputs/flutter-apk/:"
-          ls -la build/app/outputs/flutter-apk/
+          echo "Build directory contents:"
+          ls -R build/
 
-      - name: Create Release
+      - name: Create GitHub Release
+        id: create_release
         uses: softprops/action-gh-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           files: build/app/outputs/flutter-apk/app-release.apk
-          tag_name: release-${{ github.run_number }}
-          name: "Release ${{ github.run_number }}"
-          body: "Download app-release.apk to install on your Android device"
+          tag_name: build-${{ github.run_number }}
+          name: "Build ${{ github.run_number }}"
+          body: |
+            Automated build from GitHub Actions
+            Branch: ${{ github.ref_name }}
+            Commit: ${{ github.sha }}
+            
+            Download app-release.apk to install on your Android device.
           draft: false
           prerelease: false
-          token: ${{ secrets.GITHUB_TOKEN }}
           fail_on_unmatched_files: true
