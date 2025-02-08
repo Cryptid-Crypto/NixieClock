@@ -2,13 +2,18 @@ name: Build and Release APK
 on:
   push:
     branches: [ main ]
+    tags:
+      - 'latest'
   workflow_dispatch:
+
+permissions:
+  contents: write
+  discussions: write
+  packages: write
 
 jobs:
   build:
     runs-on: ubuntu-latest
-    permissions:
-      contents: write
     steps:
       - uses: actions/checkout@v3
       
@@ -39,17 +44,21 @@ jobs:
         run: |
           mv build/app/outputs/flutter-apk/app-release.apk build/app/outputs/flutter-apk/nixie_clock.apk
           
-      - name: Create Release
-        uses: softprops/action-gh-release@v1
+      - name: Delete existing release
+        uses: dev-drprasad/delete-tag-and-release@v0.2.1
         with:
-          name: "Latest APK Build"
-          tag_name: "latest"
-          files: build/app/outputs/flutter-apk/nixie_clock.apk
-          draft: false
-          prerelease: false
+          tag_name: latest
+          delete_release: true
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Create Release
+        uses: ncipollo/release-action@v1
+        with:
+          artifacts: "build/app/outputs/flutter-apk/nixie_clock.apk"
           token: ${{ secrets.GITHUB_TOKEN }}
-          body: |
-            Latest build of Nixie Clock APK
-            
-            Download the nixie_clock.apk file to install on your Android device.
-          fail_on_unmatched_files: true
+          tag: latest
+          name: "Latest Nixie Clock APK"
+          body: "Download nixie_clock.apk to install on your Android device"
+          allowUpdates: true
+          replacesArtifacts: true
+          makeLatest: true
