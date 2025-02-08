@@ -22,15 +22,15 @@ android {
         applicationId = "com.cryptidcrypto.nixieclock"
         minSdk = 21
         targetSdk = 34
-        versionCode = 1
-        versionName = "1.0.0"
+        versionCode = System.getenv("GITHUB_RUN_NUMBER")?.toInt() ?: 1
+        versionName = "1.0.${System.getenv("GITHUB_RUN_NUMBER") ?: "0"}"
     }
 
     buildTypes {
-        getByName("release") {
+        release {
             isMinifyEnabled = false
-            proguardFiles(getDefaultProguardFile("proguard-android.txt"), "proguard-rules.pro")
-            signingConfig = null // Explicitly set to null for CI build
+            isShrinkResources = false
+            signingConfig = null // Remove signing requirement for CI
         }
     }
 
