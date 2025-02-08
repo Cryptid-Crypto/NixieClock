@@ -7,6 +7,8 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     steps:
       - uses: actions/checkout@v3
       
@@ -29,11 +31,13 @@ jobs:
         run: flutter build apk --release
 
       - name: Create Release
-        uses: ncipollo/release-action@v1
+        uses: softprops/action-gh-release@v1
         with:
-          artifacts: "build/app/outputs/flutter-apk/app-release.apk"
+          name: "Latest APK Build"
+          tag_name: "latest"
+          files: build/app/outputs/flutter-apk/app-release.apk
+          draft: false
+          prerelease: false
           token: ${{ secrets.GITHUB_TOKEN }}
-          tag: latest
-          allowUpdates: true
-          replacesArtifacts: true
-          makeLatest: true
+          body: "Latest build of the Android APK"
+          fail_on_unmatched_files: true
