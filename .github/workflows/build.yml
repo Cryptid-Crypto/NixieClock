@@ -30,14 +30,26 @@ jobs:
       - name: Build APK
         run: flutter build apk --release
 
+      - name: Debug - List APK location
+        run: |
+          echo "Listing build directory contents:"
+          find build -name "*.apk"
+          
+      - name: Rename APK
+        run: |
+          mv build/app/outputs/flutter-apk/app-release.apk build/app/outputs/flutter-apk/nixie_clock.apk
+          
       - name: Create Release
         uses: softprops/action-gh-release@v1
         with:
           name: "Latest APK Build"
           tag_name: "latest"
-          files: build/app/outputs/flutter-apk/app-release.apk
+          files: build/app/outputs/flutter-apk/nixie_clock.apk
           draft: false
           prerelease: false
           token: ${{ secrets.GITHUB_TOKEN }}
-          body: "Latest build of the Android APK"
+          body: |
+            Latest build of Nixie Clock APK
+            
+            Download the nixie_clock.apk file to install on your Android device.
           fail_on_unmatched_files: true
