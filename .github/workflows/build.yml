@@ -1,64 +1,54 @@
 name: Build and Release APK
-on:
-  push:
-    branches: [ main ]
-    tags:
-      - 'latest'
-  workflow_dispatch:
-
-permissions:
-  contents: write
-  discussions: write
-  packages: write
+on: [push, workflow_dispatch]
 
 jobs:
   build:
+    name: Build APK
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
-      
+
       - name: Setup Java
         uses: actions/setup-java@v3
         with:
           distribution: 'zulu'
           java-version: '11'
-      
+
       - name: Setup Flutter
         uses: subosito/flutter-action@v2
         with:
           flutter-version: '3.x'
           channel: 'stable'
-      
-      - name: Get dependencies
+
+      - name: Flutter pub get
         run: flutter pub get
-        
+
       - name: Build APK
         run: flutter build apk --release
 
-      - name: Debug - List APK location
-        run: |
-          echo "Listing build directory contents:"
-          find build -name "*.apk"
-          
-      - name: Rename APK
-        run: |
-          mv build/app/outputs/flutter-apk/app-release.apk build/app/outputs/flutter-apk/nixie_clock.apk
-          
-      - name: Delete existing release
-        uses: dev-drprasad/delete-tag-and-release@v0.2.1
+      - name: Upload APK
+        uses: actions/upload-artifact@v3
         with:
-          tag_name: latest
-          delete_release: true
-          github_token: ${{ secrets.GITHUB_TOKEN }}
+          name: app-release
+          path: build/app/outputs/flutter-apk/app-release.apk
 
-      - name: Create Release
-        uses: ncipollo/release-action@v1
+      - name: Release APK
+        uses: actions/create-release@v1
+        id: create_release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          artifacts: "build/app/outputs/flutter-apk/nixie_clock.apk"
-          token: ${{ secrets.GITHUB_TOKEN }}
-          tag: latest
-          name: "Latest Nixie Clock APK"
-          body: "Download nixie_clock.apk to install on your Android device"
-          allowUpdates: true
-          replacesArtifacts: true
-          makeLatest: true
+          tag_name: release-${{ github.run_number }}
+          release_name: Release ${{ github.run_number }}
+          draft: false
+          prerelease: false
+
+      - name: Upload Release Asset
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: build/app/outputs/flutter-apk/app-release.apk
+          asset_name: nixie_clock.apk
+          asset_content_type: application/vnd.android.package-archive
