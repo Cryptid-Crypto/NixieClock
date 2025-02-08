@@ -13,15 +13,6 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Debug Git Info
-        run: |
-          echo "Current branch:"
-          git branch --show-current
-          echo "All branches:"
-          git branch -a
-          echo "Git status:"
-          git status
-
       - name: Setup Java
         uses: actions/setup-java@v3
         with:
@@ -31,24 +22,28 @@ jobs:
       - name: Setup Flutter
         uses: subosito/flutter-action@v2
         with:
-          flutter-version: '3.x'
+          flutter-version: '3.13.9'
           channel: 'stable'
+
+      - name: Show Flutter version
+        run: flutter --version
+
+      - name: Flutter doctor
+        run: flutter doctor -v
+
+      - name: Flutter clean
+        run: flutter clean
 
       - name: Flutter pub get
         run: flutter pub get
 
       - name: Build APK
-        run: flutter build apk --release
-
-      - name: Debug Build Output
         run: |
-          echo "APK build location:"
-          find . -name "*.apk"
-          echo "Build directory contents:"
-          ls -R build/
+          flutter build apk --release --verbose
+          echo "APK build completed"
+          ls -l build/app/outputs/flutter-apk/
 
-      - name: Create GitHub Release
-        id: create_release
+      - name: Create Release
         uses: softprops/action-gh-release@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -58,10 +53,12 @@ jobs:
           name: "Build ${{ github.run_number }}"
           body: |
             Automated build from GitHub Actions
-            Branch: ${{ github.ref_name }}
-            Commit: ${{ github.sha }}
-            
             Download app-release.apk to install on your Android device.
+            
+            Build details:
+            - Run number: ${{ github.run_number }}
+            - Commit: ${{ github.sha }}
+            - Branch: ${{ github.ref_name }}
           draft: false
           prerelease: false
           fail_on_unmatched_files: true
