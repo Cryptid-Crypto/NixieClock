@@ -1,16 +1,9 @@
-# myapp
+# Nixie Clock App
 
-A new Flutter project.
+Download the app: https://cryptid-crypto.github.io/NixieClock/
 
-## Getting Started
-
-This project is a starting point for a Flutter application.
-
-A few resources to get you started if this is your first Flutter project:
-
-- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
-
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+## Installation
+1. Visit the download page on your Android device
+2. Download the APK file
+3. Enable "Install from unknown sources" in Android settings
+4. Open the APK to install
