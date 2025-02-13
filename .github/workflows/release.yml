@@ -10,13 +10,8 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: write
-      actions: write
-      packages: write
     steps:
       - uses: actions/checkout@v3
-        with:
-          fetch-depth: 0
-          token: ${{ secrets.GITHUB_TOKEN }}
       
       - name: Set up Java
         uses: actions/setup-java@v3
@@ -33,45 +28,21 @@ jobs:
       - name: Setup Keystore
         run: |
           echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 --decode > android/app/release-keystore.jks
-          ls -l android/app/release-keystore.jks
       
       - name: Install dependencies
         run: flutter pub get
       
       - name: Build APK
-        run: |
-          flutter build apk --release
-          echo "APK Build completed"
-          echo "Checking APK locations:"
-          find . -name "*.apk"
+        run: flutter build apk --release
         env:
           KEYSTORE_PASSWORD: Sub-line1
           KEY_ALIAS: release
           KEY_PASSWORD: Sub-line1
 
-      - name: Upload Release Asset
-        uses: actions/upload-artifact@v3
+      - name: Release
+        uses: ncipollo/release-action@v1
         with:
-          name: app-release
-          path: build/app/outputs/flutter-apk/app-release.apk
-
-      - name: Create Release
-        id: create_release
-        uses: actions/create-release@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          tag_name: ${{ github.ref }}
-          release_name: Release ${{ github.ref }}
-          draft: false
-          prerelease: false
-
-      - name: Upload Release APK
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: build/app/outputs/flutter-apk/app-release.apk
-          asset_name: NixieClock.apk
-          asset_content_type: application/vnd.android.package-archive
+          artifacts: "build/app/outputs/flutter-apk/app-release.apk"
+          token: ${{ secrets.GITHUB_TOKEN }}
+          allowUpdates: true
+          artifactErrorsFailBuild: true
