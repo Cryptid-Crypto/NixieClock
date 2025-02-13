@@ -28,32 +28,35 @@ jobs:
       - name: Setup Keystore
         run: |
           echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 --decode > android/app/release-keystore.jks
+          ls -l android/app/release-keystore.jks
       
       - name: Install dependencies
         run: flutter pub get
       
       - name: Build APK
-        run: flutter build apk --release
+        run: |
+          flutter build apk --release
+          echo "APK Build completed"
+          echo "Checking APK locations:"
+          find . -name "*.apk"
         env:
           KEYSTORE_PASSWORD: Sub-line1
           KEY_ALIAS: release
           KEY_PASSWORD: Sub-line1
 
-      - name: List Build Directory
+      - name: Prepare Release Asset
         run: |
-          echo "Listing build directories..."
-          ls -R build/app/outputs/
-          echo "Listing android build directories..."
-          ls -R android/app/build/outputs/
+          mkdir -p release_assets
+          cp build/app/outputs/flutter-apk/app-release.apk release_assets/NixieClock.apk || cp android/app/build/outputs/apk/release/app-release.apk release_assets/NixieClock.apk
+          ls -l release_assets/
       
       - name: Create Release
         uses: softprops/action-gh-release@v1
         if: startsWith(github.ref, 'refs/tags/')
         with:
-          files: |
-            build/app/outputs/flutter-apk/app-release.apk
-            android/app/build/outputs/apk/release/app-release.apk
+          files: release_assets/NixieClock.apk
           draft: false
           prerelease: false
           generate_release_notes: true
           token: ${{ secrets.GITHUB_TOKEN }}
+          fail_on_unmatched_files: true
